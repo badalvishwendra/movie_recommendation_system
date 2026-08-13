@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CineMatch — AI movie recommendations</title>
+  <style>
+    :root { color-scheme: dark; --bg:#050c16; --panel:#111827; --line:#253043; --violet:#a78bfa; --violet2:#7c3aed; --muted:#94a3b8; --text:#f8fafc; }
+    *{box-sizing:border-box} body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at 38% -10%,#18233e 0,transparent 35%),var(--bg);color:var(--text)}
+    .shell{width:min(960px,calc(100% - 40px));margin:0 auto;padding:52px 0 72px}.eyebrow{display:flex;align-items:center;gap:8px;color:#c4b5fd;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}.spark{display:grid;place-items:center;width:24px;height:24px;border:1px solid #8b5cf6;border-radius:7px;background:#24164c;font-size:13px}
+    h1{margin:17px 0 8px;font-size:clamp(30px,5vw,48px);letter-spacing:-.05em;line-height:1.05}.lead{margin:0 0 32px;color:var(--muted);font-size:16px}.search-panel{padding:22px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(135deg,rgba(20,29,47,.9),rgba(10,17,29,.9));box-shadow:0 22px 60px rgba(0,0,0,.24)}
+    label{display:block;margin-bottom:9px;color:#cbd5e1;font-size:13px;font-weight:600}.controls{display:flex;gap:12px}.select-wrap{position:relative;flex:1}.select-wrap:after{content:"⌄";position:absolute;right:16px;top:9px;color:#a5b4fc;font-size:22px;pointer-events:none}select{width:100%;appearance:none;border:1px solid #38445a;border-radius:10px;padding:13px 42px 13px 14px;background:#202a3c;color:var(--text);font-size:14px;outline:none}select:focus{border-color:#8b5cf6;box-shadow:0 0 0 3px #7c3aed33}button{border:0;border-radius:10px;padding:0 19px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 10px 24px #4c1d9540;transition:.2s}button:hover{transform:translateY(-1px);filter:brightness(1.12)}
+    .result-head{display:flex;justify-content:space-between;align-items:end;margin:42px 0 17px}.result-head h2{margin:0;font-size:20px;letter-spacing:-.025em}.result-head p{margin:0;color:var(--muted);font-size:13px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.movie{min-height:112px;display:flex;align-items:center;gap:12px;padding:17px;border:1px solid #263244;border-radius:15px;background:linear-gradient(145deg,#202525,#191e22);box-shadow:0 10px 18px rgba(0,0,0,.16);cursor:pointer;transition:.22s}.movie:hover{transform:translateY(-3px);border-color:#8b5cf6;background:#25262b}.poster{display:grid;place-items:center;width:37px;height:48px;border-radius:6px;background:linear-gradient(145deg,#4c1d95,#17123e);color:#d8b4fe;font-size:18px;box-shadow:inset 0 0 0 1px #a78bfa55}.movie strong{font-family:Georgia,serif;font-size:15px;line-height:1.15}.movie span{display:block;margin-top:4px;color:#a8b2c2;font-size:11px}.empty{grid-column:1/-1;padding:34px;border:1px dashed #334155;border-radius:14px;text-align:center;color:var(--muted)}.note{margin-top:25px;color:#64748b;font-size:12px;text-align:center}.note b{color:#a78bfa}
+    @media(max-width:620px){.shell{width:min(100% - 28px,960px);padding-top:34px}.controls{flex-direction:column}button{height:45px}.grid{grid-template-columns:repeat(2,1fr);gap:10px}.movie{min-height:100px;padding:12px}.poster{width:31px;height:42px}.movie strong{font-size:13px}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <div class="eyebrow"><span class="spark">✦</span> CineMatch AI</div>
+    <h1>Find your next favourite film.</h1>
+    <p class="lead">Choose a movie you love. Our AI will uncover your next great watch.</p>
+    <section class="search-panel" aria-label="Movie selection">
+      <label for="movieSelect">Select a movie</label>
+      <div class="controls"><div class="select-wrap"><select id="movieSelect"></select></div><button id="recommend">✦ Recommend</button></div>
+    </section>
+    <section aria-live="polite">
+      <div class="result-head"><div><h2 id="heading">Because you liked Avengers: Age of Ultron</h2></div><p id="count">8 hand-picked matches</p></div>
+      <div class="grid" id="results"></div>
+    </section>
+    <p class="note"><b>AI-powered picks</b> · based on story, tone, cast, and cinematic style</p>
+  </main>
+  <script>
+    const catalog = {
+      "Avengers: Age of Ultron":[["The Avengers","2012 · Action"],["Iron Man 2","2010 · Action"],["Iron Man","2008 · Action"],["Iron Man 3","2013 · Action"],["Captain America: Civil War","2016 · Action"],["Ant-Man","2015 · Action"],["Thor","2011 · Fantasy"],["Thor: The Dark World","2013 · Fantasy"],["The Wolverine","2013 · Action"],["X-Men","2000 · Sci‑fi"]],
+      "Interstellar":[["Arrival","2016 · Sci‑fi"],["The Martian","2015 · Adventure"],["Inception","2010 · Thriller"],["Gravity","2013 · Drama"],["Dune","2021 · Adventure"],["Contact","1997 · Sci‑fi"]],
+      "The Dark Knight":[["The Batman","2022 · Crime"],["Joker","2019 · Drama"],["Heat","1995 · Crime"],["Logan","2017 · Action"],["Watchmen","2009 · Thriller"],["Batman Begins","2005 · Action"]],
+      "Spirited Away":[["Howl's Moving Castle","2004 · Animation"],["Princess Mononoke","1997 · Fantasy"],["Kiki's Delivery Service","1989 · Animation"],["The Boy and the Heron","2023 · Fantasy"],["Wolfwalkers","2020 · Animation"],["Coraline","2009 · Fantasy"]]
+    };
+    const select=document.querySelector('#movieSelect'), results=document.querySelector('#results'), heading=document.querySelector('#heading'), count=document.querySelector('#count');
+    Object.keys(catalog).forEach((title)=>select.add(new Option(title,title)));
+    function render(){const title=select.value, picks=catalog[title];heading.textContent=`Because you liked ${title}`;count.textContent=`${picks.length} hand-picked matches`;results.innerHTML=picks.map(([name,meta])=>`<article class="movie" tabindex="0"><div class="poster">🎞</div><div><strong>${name}</strong><span>${meta}</span></div></article>`).join('')}
+    document.querySelector('#recommend').addEventListener('click',render);select.addEventListener('change',render);render();
+  </script>
+</body>
+</html>
